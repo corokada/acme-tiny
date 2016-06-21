@@ -42,6 +42,11 @@ CONFDIR="`/usr/sbin/postconf -n | grep config_directory | sed -e "s/ //g" | cut 
 # 証明書のフルパス
 FULLCERT=`/usr/sbin/postconf -n | grep smtpd_tls_cert_file | grep -v localhost | sed -e "s/ //g" | cut -d'=' -f2`
 
+# 存在確認
+if [ "$FULLCERT" = "" ]; then
+  exit 0
+fi
+
 # 有効期限を取り出す
 AFTER=`openssl x509 -noout -text -dates -in $FULLCERT | grep notAfter | cut -d'=' -f2`
 AFTER=`env TZ=JST-9 date --date "$AFTER" +%s`
