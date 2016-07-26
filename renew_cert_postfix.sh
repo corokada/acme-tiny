@@ -135,10 +135,11 @@ if [ "$CNT" -le 30 ]; then
     CA1=`openssl x509 -noout -text -in $CERT | grep Issuers`
     CA2=`openssl x509 -noout -text -in ${CERT}.limit$AFTER | grep Issuers`
 
+    # CA証明書設定
+    CA=${CERT/.crt/.ca-bundle}
+
     # CA証明書が違う場合
     if [ "$CA1" != "$CA2" ]; then
-      # CA証明書設定
-      CA=${CERT/.crt/.ca-bundle}
 
       # バックアップ
       if [ -f $CA ]; then
@@ -149,11 +150,20 @@ if [ "$CNT" -le 30 ]; then
       wget -q -O - https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem.txt > $CA
     fi
 
+    # CA証明書が無い場合
+    if [ ! -f "$CA" ]; then
+      wget -q -O - https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem.txt > $CA
+    fi
+
     # バックアップ
     AFTER=`openssl x509 -noout -text -dates -in $FULLCERT | grep notAfter | cut -d'=' -f2`
     AFTER=`env TZ=JST-9 date --date "$AFTER" +%Y%m%d-%H%M`
     cp -pr $FULLCERT ${FULLCERT}.limit$AFTER
-    cat ${CONFDIR}${DOMAIN}.{crt,ca-bundle} > ${FULLCERT}
+    if [ "$FULLCERT" = "$CERT" ]; then
+      cat ${CA} >> ${FULLCERT}
+    else
+      cat ${CONFDIR}${DOMAIN}.{crt,ca-bundle} > ${FULLCERT}
+    fi
 
     # サービス再起動
     /etc/init.d/postfix reload
