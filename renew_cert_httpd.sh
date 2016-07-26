@@ -139,7 +139,7 @@ do
       fi
 
       # apache再起動
-      apachectl graceful
+      /usr/sbin/apachectl graceful
     fi
   done
 done
