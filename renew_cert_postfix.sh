@@ -168,22 +168,6 @@ if [ "$CNT" -le 30 ]; then
     # サービス再起動
     /etc/init.d/postfix reload
     /etc/init.d/dovecot reload
-    
-    # vpopmailでSSL証明書を利用している時
-    if [ -f /var/qmail/control/servercert.pem ]; then
-        # バックアップ
-        AFTER=`openssl x509 -noout -text -dates -in /var/qmail/control/servercert.pem | grep notAfter | cut -d'=' -f2`
-        AFTER=`env TZ=JST-9 date --date "$AFTER" +%Y%m%d-%H%M`
-        cp -pr /var/qmail/control/servercert.pem /var/qmail/control/servercert.pem.limit$AFTER
-
-        # コピー
-        cat ${CONFDIR}${DOMAIN}.{key,crt,ca-bundle} > /var/qmail/control/servercert.pem
-        chown qmaild.qmail /var/qmail/control/servercert.pem
-
-        # サービス再起動
-        /etc/init.d/qmail stop > /dev/null 2> /dev/null
-        /etc/init.d/qmail start > /dev/null 2> /dev/null
-    fi
   else
     # エラー出力
     cat $CERT
