@@ -36,7 +36,7 @@ if [ ! -f $USERKEY ]; then
 fi
 
 # conf一覧取り出し
-for CONFFILE in `$HTTPD -S 2>/dev/null | grep namevhost | grep "port 443" | tr -d ' ' | cut -d'(' -f2 | cut -d':' -f1 | sort | uniq`
+for CONFFILE in `$HTTPD -S 2>/dev/null | grep namevhost | grep "port 443" | tr -d ' ' | cut -d'(' -f2 | cut -d':' -f1 | sort | uniq | grep virtualhost`
 do
   #証明書ループ
   for CERT in `grep -v "#" $CONFFILE | grep SSLCertificateFile | grep -v "pki" | sed -e 's/"//g' -e "s/'//g" | awk '{print $2}' | sort | uniq`
@@ -112,6 +112,11 @@ do
       if grep -sq "\-BEGIN CERTIFICATE-" $CERT; then
         # 出力
         echo "renew ok."
+
+        # 不要な行を削除
+        GYO=`grep -n "\-BEGIN CERTIFICATE-" $CERT | cut -d':' -f1`
+        GYO=$((${GYO}-1))
+        sed -i "1,${GYO}d" $CERT
 
         #CA証明書確認
         CA1=`openssl x509 -noout -text -in $CERT | grep Issuers`
