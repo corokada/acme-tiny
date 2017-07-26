@@ -68,24 +68,24 @@ do
 
       # CSR設定
       CSR=${CERT/.crt/.csr}
-
-      # CSRが無い場合は、作成する
       if [ ! -f "$CSR" ]; then
-        if openssl x509 -noout -text -in $CERT | grep DNS | grep -sq ","; then
-          # デュアルアクセス設定
-          tmp=`mktemp -p /tmp -t opensslconf.XXXXXXXXXXXXXXX`
-          cat /etc/pki/tls/openssl.cnf > $tmp
-          printf "[SAN]\nsubjectAltName=DNS:${DOMAIN},DNS:www.${DOMAIN}" >> $tmp
-
-          # CSR作成
-          openssl req -new -key $KEY -sha256 -nodes -subj "/" -reqexts SAN -config $tmp > $CSR
-
-          # 一時ファイル削除
-          rm -rf $tmp
-        else
-          #シングルドメイン
-          openssl req -new -key $KEY -sha256 -nodes -subj "/CN=$DOMAIN" > $CSR
-        fi
+        #####        if openssl x509 -noout -text -in $CERT | grep DNS | grep -sq ","; then
+        #####          # デュアルアクセス設定
+        #####          tmp=`mktemp -p /tmp -t opensslconf.XXXXXXXXXXXXXXX`
+        #####          cat /etc/pki/tls/openssl.cnf > $tmp
+        #####          printf "[SAN]\nsubjectAltName=DNS:${DOMAIN},DNS:www.${DOMAIN}" >> $tmp
+        #####
+        #####          # CSR作成
+        #####          openssl req -new -key $KEY -sha256 -nodes -subj "/" -reqexts SAN -config $tmp > $CSR
+        #####
+        #####          # 一時ファイル削除
+        #####          rm -rf $tmp
+        #####        else
+        #####          #シングルドメイン
+        #####          openssl req -new -key $KEY -sha256 -nodes -subj "/CN=$DOMAIN" > $CSR
+        #####        fi
+        echo "$CSR not found."
+        continue
       fi
 
       # バックアップ
