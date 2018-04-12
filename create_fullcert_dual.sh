@@ -151,3 +151,4 @@ fi
 
 # 不要ファイル削除
 rm -rf ${WEBROOT}/.well-known
+rm -rf $TMP
