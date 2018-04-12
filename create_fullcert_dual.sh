@@ -50,6 +50,11 @@ if [ ! -f $USERKEY ]; then
   openssl genrsa 4096 > $USERKEY
 fi
 
+# デュアルアクセス設定
+TMP=`mktemp -p /tmp -t opensslconf.XXXXXXXXXXXXXXX`
+cat /etc/pki/tls/openssl.cnf > $TMP
+printf "[SAN]\nsubjectAltName=DNS:${DOMAIN},DNS:www.${DOMAIN}" >> $TMP
+
 #
 # RSA暗号対応
 #
@@ -62,12 +67,10 @@ fi
 # CSR作成
 RSACSR="${CERTDIR}${DOMAIN}.csr"
 if [ ! -f $RSACSR ]; then
-  openssl req -new -sha256 -key $RSAKEY -subj "/" -reqexts SAN -config <(cat /etc/pki/tls/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:${DOMAIN},DNS:www.${DOMAIN}")) > $RSACSR
+  openssl req -new -sha256 -key $RSAKEY -subj "/" -reqexts SAN -config $TMP > $RSACSR
 fi
 
-#
-# デュアルアクセスRSA証明書発行
-#
+# RSA証明書発行処理
 RSACERT="${CERTDIR}${DOMAIN}.crt"
 RSACA="${CERTDIR}${DOMAIN}.ca-bundle"
 RSAFULLCERT="${CERTDIR}${DOMAIN}.crt-ca-bundle"
@@ -111,12 +114,10 @@ if openssl ecparam -list_curves 2>/dev/null | grep -sq prime256v1; then
   # CSR作成
   ECCCSR="${CERTDIR}${DOMAIN}-ecc.csr"
   if [ ! -f $ECCCSR ]; then
-    openssl req -new -sha256 -key $ECCKEY -subj "/" -reqexts SAN -config <(cat /etc/pki/tls/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:${DOMAIN},DNS:www.${DOMAIN}")) > $ECCCSR
+    openssl req -new -sha256 -key $ECCKEY -subj "/" -reqexts SAN -config $TMP > $ECCCSR
   fi
 
-  #
-  # デュアルアクセスECC証明書発行
-  #
+  # ECC証明書発行処理
   ECCCERT="${CERTDIR}${DOMAIN}-ecc.crt"
   ECCCA="${CERTDIR}${DOMAIN}-ecc.ca-bundle"
   ECCFULLCERT="${CERTDIR}${DOMAIN}-ecc.crt-ca-bundle"
