@@ -53,7 +53,7 @@ if [ -f $KEY ]; then
 fi
 
 ## 証明書etcをコピーする
-/bin/cp --force -pr ${CERTDIR}${DOMAIN}.{crt-ca-bundle,csr,key} ${CONFDIR}
+/bin/cp --force -pr ${CERTDIR}${DOMAIN}.{crt,crt-ca-bundle,csr,key} ${CONFDIR}
 
 # conf修正(postfix)
 sed -i -e "/smtpd_tls_cert_file/c\smtpd_tls_cert_file = ${FULLCERT}" /etc/postfix/main.cf
