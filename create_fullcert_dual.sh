@@ -101,53 +101,53 @@ SPOS=$(($SPOS+1))
 EPOS=`cat $RSAFULLCERT | wc -l`
 sed -n "${SPOS},${EPOS}p" $RSAFULLCERT > $RSACA
 
-#
-# 楕円曲線暗号対応
-#
-if openssl ecparam -list_curves 2>/dev/null | grep -sq prime256v1; then
-  # 秘密鍵作成
-  ECCKEY="${CERTDIR}${DOMAIN}-ecc.key"
-  if [ ! -f $ECCKEY ]; then
-    openssl ecparam -name prime256v1 -genkey -out $ECCKEY
-  fi
-
-  # CSR作成
-  ECCCSR="${CERTDIR}${DOMAIN}-ecc.csr"
-  if [ ! -f $ECCCSR ]; then
-    openssl req -new -sha256 -key $ECCKEY -subj "/" -reqexts SAN -config $TMP > $ECCCSR
-  fi
-
-  # ECC証明書発行処理
-  ECCCERT="${CERTDIR}${DOMAIN}-ecc.crt"
-  ECCCA="${CERTDIR}${DOMAIN}-ecc.ca-bundle"
-  ECCFULLCERT="${CERTDIR}${DOMAIN}-ecc.crt-ca-bundle"
-  if [ -f $ECCFULLCERT ]; then
-    # 発行済みECC証明書バックアップ
-    AFTER=`openssl x509 -noout -text -dates -in $ECCFULLCERT | grep notAfter | cut -d'=' -f2`
-    AFTER=`env TZ=JST-9 date --date "$AFTER" +%Y%m%d-%H%M`
-    /bin/cp --force -pr $ECCFULLCERT ${ECCFULLCERT}.limit$AFTER
-  fi
-  if [ -f $ECCCERT ]; then
-    # 発行済みECC証明書バックアップ
-    AFTER=`openssl x509 -noout -text -dates -in $ECCCERT | grep notAfter | cut -d'=' -f2`
-    AFTER=`env TZ=JST-9 date --date "$AFTER" +%Y%m%d-%H%M`
-    /bin/cp --force -pr $ECCCERT ${ECCCERT}.limit$AFTER
-  fi
-  cd $CERTDIR
-  $PYTHON $SIGNPG --account-key $USERKEY --csr $ECCCSR --acme-dir ${WEBROOT}/.well-known/acme-challenge/ > $ECCFULLCERT
-
-  #
-  # サーバー証明書とルート証明書を分ける
-  #
-  POS=`grep -n "^$" $ECCFULLCERT | cut -d':' -f1`
-  POS=$(($POS-1))
-  sed -n "1,${POS}p" $ECCFULLCERT > $ECCCERT
-  
-  SPOS=`grep -n "^$" $ECCFULLCERT | cut -d':' -f1`
-  SPOS=$(($SPOS+1))
-  EPOS=`cat $ECCFULLCERT | wc -l`
-  sed -n "${SPOS},${EPOS}p" $ECCFULLCERT > $ECCCA
-fi
+###
+### 楕円曲線暗号対応
+###
+###if openssl ecparam -list_curves 2>/dev/null | grep -sq prime256v1; then
+###  # 秘密鍵作成
+###  ECCKEY="${CERTDIR}${DOMAIN}-ecc.key"
+###  if [ ! -f $ECCKEY ]; then
+###    openssl ecparam -name prime256v1 -genkey -out $ECCKEY
+###  fi
+###
+###  # CSR作成
+###  ECCCSR="${CERTDIR}${DOMAIN}-ecc.csr"
+###  if [ ! -f $ECCCSR ]; then
+###    openssl req -new -sha256 -key $ECCKEY -subj "/" -reqexts SAN -config $TMP > $ECCCSR
+###  fi
+###
+###  # ECC証明書発行処理
+###  ECCCERT="${CERTDIR}${DOMAIN}-ecc.crt"
+###  ECCCA="${CERTDIR}${DOMAIN}-ecc.ca-bundle"
+###  ECCFULLCERT="${CERTDIR}${DOMAIN}-ecc.crt-ca-bundle"
+###  if [ -f $ECCFULLCERT ]; then
+###    # 発行済みECC証明書バックアップ
+###    AFTER=`openssl x509 -noout -text -dates -in $ECCFULLCERT | grep notAfter | cut -d'=' -f2`
+###    AFTER=`env TZ=JST-9 date --date "$AFTER" +%Y%m%d-%H%M`
+###    /bin/cp --force -pr $ECCFULLCERT ${ECCFULLCERT}.limit$AFTER
+###  fi
+###  if [ -f $ECCCERT ]; then
+###    # 発行済みECC証明書バックアップ
+###    AFTER=`openssl x509 -noout -text -dates -in $ECCCERT | grep notAfter | cut -d'=' -f2`
+###    AFTER=`env TZ=JST-9 date --date "$AFTER" +%Y%m%d-%H%M`
+###    /bin/cp --force -pr $ECCCERT ${ECCCERT}.limit$AFTER
+###  fi
+###  cd $CERTDIR
+###  $PYTHON $SIGNPG --account-key $USERKEY --csr $ECCCSR --acme-dir ${WEBROOT}/.well-known/acme-challenge/ > $ECCFULLCERT
+###
+###  #
+###  # サーバー証明書とルート証明書を分ける
+###  #
+###  POS=`grep -n "^$" $ECCFULLCERT | cut -d':' -f1`
+###  POS=$(($POS-1))
+###  sed -n "1,${POS}p" $ECCFULLCERT > $ECCCERT
+###  
+###  SPOS=`grep -n "^$" $ECCFULLCERT | cut -d':' -f1`
+###  SPOS=$(($SPOS+1))
+###  EPOS=`cat $ECCFULLCERT | wc -l`
+###  sed -n "${SPOS},${EPOS}p" $ECCFULLCERT > $ECCCA
+###fi
 
 # 不要ファイル削除
 rm -rf ${WEBROOT}/.well-known
