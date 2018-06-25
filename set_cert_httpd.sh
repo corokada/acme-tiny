@@ -82,7 +82,7 @@ if [ -f $CA ]; then
 fi
 
 ## 証明書etcをコピーする
-/bin/cp --force -pr ${CERTDIR}${DOMAIN}{,-ecc}.{ca-bundle,crt,csr,key} ${CONFDIR}
+/bin/cp --force -pr ${CERTDIR}${DOMAIN}.{ca-bundle,crt,csr,key} ${CONFDIR}
 
 ## CONFFILEの修正
 # RSA
@@ -95,6 +95,7 @@ sed -i -e "s/#SSLVerifyDepth/SSLVerifyDepth/" $CONFFILE
 sed -i -e "s/SSLVerifyDepth/#SSLVerifyDepth/" $CONFFILE
 # ECC
 if [ -f $ECCCERT ]; then
+  /bin/cp --force -pr ${CERTDIR}${DOMAIN}-ecc.{ca-bundle,crt,csr,key} ${CONFDIR}
   sed -i -e "/SSLCertificateFile/i\    #ECC" $CONFFILE
   sed -i -e "/SSLCertificateFile/i\    #RSA" $CONFFILE
   sed -i -e "/#ECC/a\    SSLCACertificateFile $ECCCA" $CONFFILE
